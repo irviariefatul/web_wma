@@ -442,12 +442,20 @@ class PeramalanController extends Controller
     {
         $scraper = new YahooFinanceScraper();
         $crawler = $scraper->scrape();
-        foreach ($crawler as $key => $value) {
-            // $rentang = Peramalan::where('nilai_peramalan', null)->where('nilai_error', null)->count();
-            $rentang = 2;
-            PeramalanUtils::scrap($rentang, $value['date'], $value['adj_close']);
-        }
+        try {
+            foreach ($crawler as $key => $value) {
+                // $rentang = Peramalan::where('nilai_peramalan', null)->where('nilai_error', null)->count();
+                $rentang = 2;
+                if (isset($value['adj_close']) && $value['adj_close'] !== null && $value['adj_close'] !== 0) {
+                    PeramalanUtils::scrap($rentang, $value['date'], $value['adj_close']);
+                }
+            }
+        } catch (\DivisionByZeroError $e) {
+            // Menangkap kesalahan division by zero dan langsung redirect
+            return redirect()->route('peramalans.index');
+        } 
         /*
+        if(isset($value['adj_close']) && $value['adj_close'] !== null && $value['adj_close'] !== 0)
         return response()->json([
             'status' => true,
             'data' => 'success scrap !'

@@ -27,7 +27,7 @@ class YahooFinanceScraper
         $historicalData = $client->getHistoricalQuoteData(
             "^JKSE",
             ApiClient::INTERVAL_1_DAY,
-            new \DateTime("-3 days"),
+            new \DateTime("-6 days"),
             new \DateTime("today")
         );
 

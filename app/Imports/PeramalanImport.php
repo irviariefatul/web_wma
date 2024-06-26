@@ -16,10 +16,10 @@ class PeramalanImport implements ToCollection
     {
         $arrayData = $collection->toArray();
 
-        // Remove the first element if needed
+        // Hapus elemen pertama jika diperlukan
         unset($arrayData[0]);
 
-        // Define a set of known example data to exclude
+        // Definisikan satu set data contoh yang diketahui untuk dikecualikan
         $exampleData = [
             ['1/2/2024', 0, 0, 0, 0, 7323.59, 0],
             ['1/3/2024', 0, 0, 0, 0, 7279.09, 0],
@@ -28,22 +28,22 @@ class PeramalanImport implements ToCollection
 
         // Atur konfigurasi memori dan waktu eksekusi
         ini_set('memory_limit', '512M');
-        ini_set('max_execution_time', 300); // 300 seconds = 5 minutes
+        ini_set('max_execution_time', 300); // 300 detik = 5 menit
 
         $batchSize = 100; // Ukuran batch
         $batchData = [];
 
         foreach ($arrayData as $item) {
-            // Check if item is not part of the example data
+            // Periksa jika item bukan bagian dari data contoh
             if (in_array($item, $exampleData)) {
                 continue;
             }
 
-            // Check if $item[5] is not null or 0
-            if (isset($item[5]) && $item[5] != null && $item[5] != 0) {
+            // Periksa jika $item[5] tidak null, tidak 0, dan merupakan angka yang valid
+            if (isset($item[5]) && $item[5] != null && $item[5] != 0 && is_numeric($item[5])) {
                 $batchData[] = [
                     'date' => $item[0],
-                    'adj' => $item[5]
+                    'adj' => (float)$item[5] // Pastikan adj adalah float
                 ];
 
                 // Jika ukuran batch mencapai batchSize, proses batch
@@ -52,6 +52,7 @@ class PeramalanImport implements ToCollection
                         PeramalanUtils::scrapBatch(2, $batchData);
                         $batchData = []; // Reset batch
                     } catch (\Throwable $th) {
+                        // Tangkap dan lempar ulang error jika terjadi
                         throw $th;
                     }
                 }
@@ -63,6 +64,7 @@ class PeramalanImport implements ToCollection
             try {
                 PeramalanUtils::scrapBatch(2, $batchData);
             } catch (\Throwable $th) {
+                // Tangkap dan lempar ulang error jika terjadi
                 throw $th;
             }
         }
